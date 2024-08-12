@@ -249,10 +249,69 @@ Por ejemplo, entre sanRafael y copiapo hay 208+326+177+274 = 985 km
 
 */
 
-distancia(Inicial,Final,Kilometros):- etapa(Inical,Final,Kilometros).
+distancia(Inicio,Fin,Kilometros):- 
+    etapa(Inicio,Fin,Kilometros).
 
-distancia(Inicial,Final,Kilometros):- 
-    etapa(Inical,SiguienteLugar,KilometrajeMomento),
-    distancia(SiguienteLugar,Final,KilometrajeRestante),
-    Kilometros is KilometrajeMomento + KilometrajeRestante.
+distancia(Inicio,Fin,Kilometros):- 
+    etapa(Inicio,SigLugar,KmParcial),
+    distancia(SigLugar,Fin,KmRestante),
+    Kilometros is KmParcial + KmRestante.
 
+%Punto 6.b:
+/*
+Saber si un vehículo puede recorrer cierta distancia sin parar. 
+Por ahora (posiblemente cambie) diremos que un vehículo caro puede recorrer 2000 km, mientras que el resto solamente 1800 km. 
+Además, los camiones pueden también recorrer una distancia máxima igual a la cantidad de cosas que lleva * 1000.
+Por ejemplo, una moto(1999,1) como no es cara, puede recorrer 1800 km pero no 1900 km.
+
+*/
+
+puedeRecorrerSinParar(Vehiculo, Distancia):-
+    distanciaLimite(Vehiculo, KmLimite),
+    Distancia =< Limite.
+
+distanciaLimite(Vehiculo,2000):-
+    esCaro(Vehiculo).
+
+distanciaLimite(Vehiculo,1800):-
+    vehiculo(Vehiculo),
+    not(esCaro(Vehiculo)).
+
+
+vehiculo(Vehiculo):-
+    marca(Vehiculo,_).
+
+distanciaLimite(camion(Items),KmLimite):-
+    length(Items, Cantidad),
+    KmLimite is Cantidad * 1000.
+
+%Punto 6.c:
+
+/*
+
+Los corredores quieren saber, dado un vehículo y un origen, cuál es el destino más lejano al que pueden llegar sin parar.
+Para la moto del punto anterior el destino más lejano desde marDelPlata es copiapo. 
+Ya suman 1335 km, pero el con el próximo destino (antofagasta) se va a 1812 km, que es una distancia que no puede recorrer.
+
+destinoMasLejano es el lugar mas lejano donde pueden llegar sinParar
+
+*/
+
+destinoMasLejano(Vehiculo,Origen,Destino):-
+    puedenLlegarSinParar(Vehiculo,Origen,Destino),
+    forall(otroDestino(Vehiculo,Origen,Destino,OtroDestino),estaMasCerca(OtroDestino,Origen,Destino)).
+    
+
+puedenLlegarSinParar(Vehiculo,Origen,Destino):-
+    distancia(Origen,Destino,Distancia),
+    puedeRecorrerSinParar(Vehiculo,Distancia).
+
+estaMasCerca(DestinoCerca, Origen, Destino):-
+    distancia(Origen,Destino,Distancia),
+    distancia(Origen,DestinoCerca,DistanciaCerca),
+    DistanciaCerca < Distancia.
+
+otroDestino(Vehiculo,Origen,Destino,OtroDestino):-
+    puedenLlegarSinParar(Vehiculo,Origen,Destino),
+    puedenLlegarSinParar(Vehiculo,Origen,OtroDestino),
+    Destino \= OtroDestino.
